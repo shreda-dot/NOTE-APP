@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import ReactSelect from "react-select";
 import type { Note, Tag } from "../App";
@@ -6,16 +6,32 @@ import type { Note, Tag } from "../App";
 type NoteListProps = {
   availableTags: Tag[];
   notes: Note[];
+  onDeleteTag: (id: string) => void;
+  onUpdateTag: (id: string, label: string) => void;
 };
 type SimplifiedNote = {
   tags: Tag[];
   title: string;
   id: string;
 };
+type EditTagsModalProps = {
+  show: boolean;
+  availableTags: Tag[];
+  handleClose: () => void;
+  onDeleteTag: (id: string) => void;
+  onUpdateTag: (id: string, label: string) => void;
+};
 
-const NoteList = ({ availableTags, notes }: NoteListProps) => {
+const NoteList = ({
+  availableTags,
+  notes,
+  onDeleteTag,
+  onUpdateTag,
+}: NoteListProps) => {
   const [Selectedtags, setSelectedTags] = React.useState<Tag[]>([]);
   const [title, setTitle] = React.useState("");
+  const [editTagsModalIsOpen, setEditTagsModalIsOpen] = useState(false);
+
   const filterNote = useMemo(() => {
     return notes.filter((note) => {
       return (
@@ -39,10 +55,11 @@ const NoteList = ({ availableTags, notes }: NoteListProps) => {
               Create Note
             </Link>
           </button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-300 ml-2">
-            <Link to="/edit" className="text-white no-underline">
-              Edit Note
-            </Link>
+          <button
+            onClick={() => setEditTagsModalIsOpen(true)}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-300 ml-2"
+          >
+            Edit Tags
           </button>
         </div>
       </div>
@@ -107,9 +124,17 @@ const NoteList = ({ availableTags, notes }: NoteListProps) => {
           </div>
         ))}
       </div>
+      <EditTagsModal
+        onUpdateTag={onUpdateTag}
+        onDeleteTag={onDeleteTag}
+        show={editTagsModalIsOpen}
+        handleClose={() => setEditTagsModalIsOpen(false)}
+        availableTags={availableTags}
+      />
     </>
   );
 };
+// NoteCard Component for displaying individual notes in the list
 const NoteCard = ({ id, title, tags }: SimplifiedNote) => {
   return (
     <Link
@@ -155,5 +180,66 @@ const NoteCard = ({ id, title, tags }: SimplifiedNote) => {
       </div>
     </Link>
   );
-};
+}; // Modal Component for editing tags
+function EditTagsModal({
+  availableTags,
+  handleClose,
+  show,
+  onDeleteTag,
+  onUpdateTag,
+}: EditTagsModalProps) {
+  // If show is false, render nothing
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      {/* Modal Container */}
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-xl font-semibold text-gray-800">Edit Tags</h2>
+          <button
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-4 max-h-[60vh] overflow-y-auto">
+          <form className="space-y-3">
+            {availableTags.map((tag) => (
+              <div key={tag.id} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={tag.label}
+                  onChange={(e) => onUpdateTag(tag.id, e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => onDeleteTag(tag.id)}
+                  className="px-3 py-2 border border-red-500 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </form>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="p-4 border-t flex justify-end">
+          <button
+            onClick={handleClose}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md font-medium transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 export default NoteList;

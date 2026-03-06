@@ -14,7 +14,7 @@ const TestingWaters = ({onSubmit, onAddTag, availableTags} : NewNoteProps) => {
       New  Note 
 
      </h1>
-      <NoteForm onsubmit={onSubmit} onAddTag={onAddTag} availableTags={availableTags}/>
+      <NoteForm onSubmit={onSubmit} onAddTag={onAddTag} availableTags={availableTags}/>
       
     </div>
   )
